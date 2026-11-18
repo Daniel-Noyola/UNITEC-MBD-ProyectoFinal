@@ -9,21 +9,22 @@
 
 ## Índice
 
-1. [Fichas Técnicas del Diccionario de Datos (8 Tablas en 3FN)](#1-fichas-técnicas-del-diccionario-de-datos-8-tablas-en-3fn)
+1. [Fichas Técnicas del Diccionario de Datos (9 Tablas en 3FN)](#1-fichas-técnicas-del-diccionario-de-datos-9-tablas-en-3fn)
    - [1.1 Tabla: `tipos_usuario`](#11-tabla-tipos_usuario)
    - [1.2 Tabla: `usuarios`](#12-tabla-usuarios)
-   - [1.3 Tabla: `autores`](#13-tabla-autores)
-   - [1.4 Tabla: `categorias`](#14-tabla-categorias)
-   - [1.5 Tabla: `libros`](#15-tabla-libros)
-   - [1.6 Tabla: `ejemplares`](#16-tabla-ejemplares)
-   - [1.7 Tabla: `prestamos`](#17-tabla-prestamos)
-   - [1.8 Tabla: `multas`](#18-tabla-multas)
+   - [1.3 Tabla: `bibliotecarios`](#13-tabla-bibliotecarios)
+   - [1.4 Tabla: `autores`](#14-tabla-autores)
+   - [1.5 Tabla: `categorias`](#15-tabla-categorias)
+   - [1.6 Tabla: `libros`](#16-tabla-libros)
+   - [1.7 Tabla: `ejemplares`](#17-tabla-ejemplares)
+   - [1.8 Tabla: `prestamos`](#18-tabla-prestamos)
+   - [1.9 Tabla: `multas`](#19-tabla-multas)
 2. [Sentencias DDL de Creación (`CREATE TABLE`)](#2-sentencias-ddl-de-creación-create-table)
 3. [Matriz de Integridad y Validación en Dos Niveles](#3-matriz-de-integridad-y-validación-en-dos-niveles)
 
 ---
 
-## 1. Fichas Técnicas del Diccionario de Datos (8 Tablas en 3FN)
+## 1. Fichas Técnicas del Diccionario de Datos (9 Tablas en 3FN)
 
 ### 1.1 Tabla: `tipos_usuario`
 
@@ -56,7 +57,23 @@
 
 ---
 
-### 1.3 Tabla: `autores`
+### 1.3 Tabla: `bibliotecarios`
+
+- **Propósito:** Almacena al personal administrativo/trabajadores de la biblioteca con acceso al sistema para operar el mostrador.
+- **Motor:** `InnoDB` | **Cotejamiento:** `utf8mb4_unicode_ci`
+
+| Campo | Tipo | Longitud | Nulo | Clave | Default | Restricción | Descripción Funcional |
+|---|---|---|---|---|---|---|---|
+| `id` | `INT UNSIGNED` | 10 | `NO` | `PK` | `AUTO_INCREMENT` | — | Identificador único del bibliotecario en el sistema. |
+| `num_empleado` | `VARCHAR` | 20 | `NO` | `UK` | — | `UNIQUE` | Número de empleado institucional del trabajador. |
+| `nombre_completo` | `VARCHAR` | 120 | `NO` | — | — | — | Nombre completo y apellidos del bibliotecario. |
+| `correo` | `VARCHAR` | 100 | `NO` | `UK` | — | `UNIQUE`, `CHECK (correo LIKE '%@%')` | Correo electrónico institucional de acceso. |
+| `password_hash` | `VARCHAR` | 255 | `NO` | — | — | — | Hash seguro de la contraseña de autenticación. |
+| `estado` | `ENUM` | — | `NO` | — | `'Activo'` | `'Activo'`, `'Inactivo'` | Estado operativo de la cuenta del bibliotecario. |
+
+---
+
+### 1.4 Tabla: `autores`
 
 - **Propósito:** Catálogo de autores intelectuales de las obras registradas.
 - **Motor:** `InnoDB` | **Cotejamiento:** `utf8mb4_unicode_ci`
@@ -69,7 +86,7 @@
 
 ---
 
-### 1.4 Tabla: `categorias`
+### 1.5 Tabla: `categorias`
 
 - **Propósito:** Clasificación temática y disciplinaria del acervo bibliográfico.
 - **Motor:** `InnoDB` | **Cotejamiento:** `utf8mb4_unicode_ci`
@@ -82,7 +99,7 @@
 
 ---
 
-### 1.5 Tabla: `libros`
+### 1.6 Tabla: `libros`
 
 - **Propósito:** Registra la obra bibliográfica a nivel conceptual e intelectual (título, autor, editorial e ISBN).
 - **Motor:** `InnoDB` | **Cotejamiento:** `utf8mb4_unicode_ci`
@@ -99,7 +116,7 @@
 
 ---
 
-### 1.6 Tabla: `ejemplares`
+### 1.7 Tabla: `ejemplares`
 
 - **Propósito:** Representa las copias físicas tangibles existentes en estantería para cada obra del catálogo.
 - **Motor:** `InnoDB` | **Cotejamiento:** `utf8mb4_unicode_ci`
@@ -115,9 +132,9 @@
 
 ---
 
-### 1.7 Tabla: `prestamos`
+### 1.8 Tabla: `prestamos`
 
-- **Propósito:** Registro transaccional de los movimientos de salida y retorno de ejemplares solicitados por los usuarios.
+- **Propósito:** Registro transaccional de los movimientos de salida y retorno de ejemplares solicitados por los usuarios y atendidos por un bibliotecario.
 - **Motor:** `InnoDB` | **Cotejamiento:** `utf8mb4_unicode_ci`
 
 | Campo | Tipo | Longitud | Nulo | Clave | Default | Restricción | Descripción Funcional |
@@ -125,6 +142,7 @@
 | `id` | `INT UNSIGNED` | 10 | `NO` | `PK` | `AUTO_INCREMENT` | — | Identificador único del evento transaccional de préstamo. |
 | `usuario_id` | `INT UNSIGNED` | 10 | `NO` | `FK` | — | `REFERENCES usuarios(id)` | Usuario solicitante. `ON UPDATE CASCADE ON DELETE RESTRICT`. |
 | `ejemplar_id` | `INT UNSIGNED` | 10 | `NO` | `FK` | — | `REFERENCES ejemplares(id)` | Copia física prestada. `ON UPDATE CASCADE ON DELETE RESTRICT`. |
+| `bibliotecario_id` | `INT UNSIGNED` | 10 | `NO` | `FK` | — | `REFERENCES bibliotecarios(id)` | Bibliotecario que registra el préstamo. `ON UPDATE CASCADE ON DELETE RESTRICT`. |
 | `fecha_salida` | `DATE` | — | `NO` | — | — | — | Fecha en que el ejemplar es retirado de biblioteca. |
 | `fecha_compromiso` | `DATE` | — | `NO` | — | — | `CHECK (fecha_compromiso >= fecha_salida)` | Fecha límite estipulada para la entrega del material. |
 | `fecha_devolucion_real` | `DATE` | — | `SÍ` | — | `NULL` | — | Fecha real en que el material ingresó a biblioteca (`NULL` si está activo). |
@@ -132,7 +150,7 @@
 
 ---
 
-### 1.8 Tabla: `multas`
+### 1.9 Tabla: `multas`
 
 - **Propósito:** Cuantificación y seguimiento financiero de sanciones económicas generadas por préstamos devueltos fuera de plazo.
 - **Motor:** `InnoDB` | **Cotejamiento:** `utf8mb4_unicode_ci`
@@ -141,6 +159,7 @@
 |---|---|---|---|---|---|---|---|
 | `id` | `INT UNSIGNED` | 10 | `NO` | `PK` | `AUTO_INCREMENT` | — | Identificador unívoco de la multa generada. |
 | `prestamo_id` | `INT UNSIGNED` | 10 | `NO` | `FK, UK` | — | `UNIQUE`, `REFERENCES prestamos(id)` | Préstamo en mora asociado (relación 1:0..1). `ON UPDATE CASCADE ON DELETE CASCADE`. |
+| `bibliotecario_id` | `INT UNSIGNED` | 10 | `SÍ` | `FK` | `NULL` | `REFERENCES bibliotecarios(id)` | Bibliotecario que gestiona o cobra la multa (`NULL` si se genera automáticamente). `ON UPDATE CASCADE ON DELETE RESTRICT`. |
 | `dias_retraso` | `SMALLINT UNSIGNED` | 5 | `NO` | — | — | `CHECK (dias_retraso >= 0)` | Cantidad de días de demora acumulados tras la fecha compromiso. |
 | `monto_total` | `DECIMAL` | 8, 2 | `NO` | — | — | `CHECK (monto_total >= 0.00)` | Saldo total a liquidar ($15.00 MXN por cada día de mora). |
 | `fecha_generacion` | `DATE` | — | `NO` | — | — | — | Fecha en que se emite la sanción en el sistema. |
@@ -150,7 +169,7 @@
 
 ## 2. Sentencias DDL de Creación (`CREATE TABLE`)
 
-A continuación se presentan las sentencias en lenguaje DDL (*Data Definition Language*) para la creación de las 8 tablas en MySQL/MariaDB. Las sentencias se ordenan respetando rigurosamente las dependencias de integridad referencial: primero las entidades base e independientes, y posteriormente las entidades dependientes y transaccionales.
+A continuación se presentan las sentencias en lenguaje DDL (*Data Definition Language*) para la creación de las 9 tablas en MySQL/MariaDB. Las sentencias se ordenan respetando rigurosamente las dependencias de integridad referencial: primero las entidades base e independientes, y posteriormente las entidades dependientes y transaccionales.
 
 ```sql
 -- =============================================================================
@@ -187,14 +206,27 @@ CREATE TABLE usuarios (
         ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3. TABLA: autores (Entidad independiente)
+-- 3. TABLA: bibliotecarios (Entidad independiente - personal operativo)
+CREATE TABLE bibliotecarios (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    num_empleado VARCHAR(20) NOT NULL,
+    nombre_completo VARCHAR(120) NOT NULL,
+    correo VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo',
+    CONSTRAINT uq_bibliotecarios_num_empleado UNIQUE (num_empleado),
+    CONSTRAINT uq_bibliotecarios_correo UNIQUE (correo),
+    CONSTRAINT chk_bibliotecarios_correo CHECK (correo LIKE '%@%')
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 4. TABLA: autores (Entidad independiente)
 CREATE TABLE autores (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre_autor VARCHAR(100) NOT NULL,
     nacionalidad VARCHAR(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 4. TABLA: categorias (Entidad independiente)
+-- 5. TABLA: categorias (Entidad independiente)
 CREATE TABLE categorias (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre_categoria VARCHAR(50) NOT NULL,
@@ -202,7 +234,7 @@ CREATE TABLE categorias (
     CONSTRAINT uq_categorias_nombre UNIQUE (nombre_categoria)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. TABLA: libros (Depende de autores y categorias)
+-- 6. TABLA: libros (Depende de autores y categorias)
 CREATE TABLE libros (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     autor_id INT UNSIGNED NOT NULL,
@@ -223,7 +255,7 @@ CREATE TABLE libros (
         ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 6. TABLA: ejemplares (Depende de libros)
+-- 7. TABLA: ejemplares (Depende de libros)
 CREATE TABLE ejemplares (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     libro_id INT UNSIGNED NOT NULL,
@@ -238,11 +270,12 @@ CREATE TABLE ejemplares (
         ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 7. TABLA: prestamos (Depende de usuarios y ejemplares)
+-- 8. TABLA: prestamos (Depende de usuarios, ejemplares y bibliotecarios)
 CREATE TABLE prestamos (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     ejemplar_id INT UNSIGNED NOT NULL,
+    bibliotecario_id INT UNSIGNED NOT NULL,
     fecha_salida DATE NOT NULL,
     fecha_compromiso DATE NOT NULL,
     fecha_devolucion_real DATE NULL,
@@ -255,13 +288,18 @@ CREATE TABLE prestamos (
     CONSTRAINT fk_prestamos_ejemplar FOREIGN KEY (ejemplar_id)
         REFERENCES ejemplares(id)
         ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_prestamos_bibliotecario FOREIGN KEY (bibliotecario_id)
+        REFERENCES bibliotecarios(id)
+        ON UPDATE CASCADE
         ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 8. TABLA: multas (Depende de prestamos - Relación 1:0..1)
+-- 9. TABLA: multas (Depende de prestamos y bibliotecarios - Relación 1:0..1)
 CREATE TABLE multas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     prestamo_id INT UNSIGNED NOT NULL,
+    bibliotecario_id INT UNSIGNED NULL,
     dias_retraso SMALLINT UNSIGNED NOT NULL,
     monto_total DECIMAL(8, 2) NOT NULL,
     fecha_generacion DATE NOT NULL,
@@ -272,7 +310,11 @@ CREATE TABLE multas (
     CONSTRAINT fk_multas_prestamo FOREIGN KEY (prestamo_id)
         REFERENCES prestamos(id)
         ON UPDATE CASCADE
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_multas_bibliotecario FOREIGN KEY (bibliotecario_id)
+        REFERENCES bibliotecarios(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
@@ -289,6 +331,10 @@ Para satisfacer los requisitos obligatorios de validación de datos en dos nivel
 | `usuarios.matricula_num_emp` | Clave única de alumno o empleado. | `CONSTRAINT uq_usuarios_matricula UNIQUE` | Validación con regex institucional y consulta previa de existencia en PHP. |
 | `usuarios.correo` | Formato de correo válido y sin duplicados. | `UNIQUE`, `CHECK (correo LIKE '%@%')` | Input `type="email"`, validación PHP `filter_var($email, FILTER_VALIDATE_EMAIL)`. |
 | `usuarios.estado` | Estatus restringido a catálogo cerrado. | `ENUM('Activo', 'Suspendido', 'Baja')` | Menú `<select>` predefinido y validación con `in_array()` en PHP. |
+| `bibliotecarios.num_empleado` | Clave única de trabajador. | `CONSTRAINT uq_bibliotecarios_num_empleado UNIQUE` | Validación de formato y consulta previa de existencia en PHP. |
+| `bibliotecarios.correo` | Correo único para inicio de sesión. | `UNIQUE`, `CHECK (correo LIKE '%@%')` | Input `type="email"`, validación `filter_var($email, FILTER_VALIDATE_EMAIL)` en PHP. |
+| `bibliotecarios.password_hash` | Almacenamiento seguro de credenciales. | `VARCHAR(255) NOT NULL` | Generación y verificación exclusiva con `password_hash()` / `password_verify()` en PHP. |
+| `bibliotecarios.estado` | Control de acceso operativo. | `ENUM('Activo', 'Inactivo')` | Bloqueo de login en PHP si el estado es `'Inactivo'`. |
 | `libros.isbn` | Identificador bibliográfico unívoco. | `CONSTRAINT uq_libros_isbn UNIQUE` | Validación de máscara ISBN (10 o 13 dígitos) y sanitización de guiones. |
 | `libros.anio_publicacion` | Año histórico razonable. | `CHECK (anio_publicacion BETWEEN 1000 AND 2100)` | Input `min="1000" max="2100"`, comprobación con año actual en PHP. |
 | `ejemplares.codigo_inventario` | Marbete físico único e irrepetible. | `CONSTRAINT uq_ejemplares_codigo UNIQUE` | Validación de unicidad previa y formato alfanumérico en backend. |

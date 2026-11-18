@@ -9,80 +9,32 @@
 
 ## Índice
 
-1. [Notación Crow's Foot (Pata de Gallo) y Simbología de Cardinalidad](#1-notación-crows-foot-pata-de-gallo-y-simbología-de-cardinalidad)
-2. [Evolución de Nombres: Simplificación de Claves (PK y FK)](#2-evolución-de-nombres-simplificación-de-claves-pk-y-fk)
-   - [2.1 Justificación Técnica de PK Unificada como `id`](#21-justificación-técnica-de-pk-unificada-como-id)
-   - [2.2 Estandarización de Claves Foráneas con Formato `[entidad]_id`](#22-estandarización-de-claves-foráneas-con-formato-entidad_id)
-3. [Diagrama Entidad-Relación a Nivel Conceptual](#3-diagrama-entidad-relación-a-nivel-conceptual)
-   - [3.1 Modelado Semántico de Alto Nivel](#31-modelado-semántico-de-alto-nivel)
-   - [3.2 Descripción de Subsistemas de Negocio](#32-descripción-de-subsistemas-de-negocio)
-4. [Diagrama Entidad-Relación a Nivel Lógico (Crow's Foot)](#4-diagrama-entidad-relación-a-nivel-lógico-crows-foot)
-5. [Matriz Detallada de Relaciones y Cardinalidades](#5-matriz-detallada-de-relaciones-y-cardinalidades)
-6. [Políticas de Integridad Referencial y Restricciones de Dominio](#6-políticas-de-integridad-referencial-y-restricciones-de-dominio)
-   - [6.1 Acciones de Disparador Referencial (`ON DELETE` / `ON UPDATE`)](#61-acciones-de-disparador-referencial-on-delete--on-update)
-   - [6.2 Restricciones de Unicidad y Dominio](#62-restricciones-de-unicidad-y-dominio)
+1. [Evolución de Nombres: Simplificación de Claves (PK y FK)](#1-evolución-de-nombres-simplificación-de-claves-pk-y-fk)
+2. [Diagrama Entidad-Relación a Nivel Conceptual](#2-diagrama-entidad-relación-a-nivel-conceptual)
+   - [2.1 Modelado Semántico de Alto Nivel](#21-modelado-semántico-de-alto-nivel)
+   - [2.2 Descripción de Subsistemas de Negocio](#22-descripción-de-subsistemas-de-negocio)
+3. [Diagrama Entidad-Relación a Nivel Lógico (Crow's Foot)](#3-diagrama-entidad-relación-a-nivel-lógico-crows-foot)
+4. [Matriz Detallada de Relaciones y Cardinalidades](#4-matriz-detallada-de-relaciones-y-cardinalidades)
+5. [Políticas de Integridad Referencial y Restricciones de Dominio](#5-políticas-de-integridad-referencial-y-restricciones-de-dominio)
+   - [5.1 Acciones de Disparador Referencial (`ON DELETE` / `ON UPDATE`)](#51-acciones-de-disparador-referencial-on-delete--on-update)
+   - [5.2 Restricciones de Unicidad y Dominio](#52-restricciones-de-unicidad-y-dominio)
 
 ---
 
-## 1. Notación Crow's Foot (Pata de Gallo) y Simbología de Cardinalidad
+## 1. Evolución de Nombres: Simplificación de Claves (PK y FK)
 
-Para la representación del modelo de base de datos se utiliza la notación **Crow's Foot (Pata de Gallo)**, estándar de la industria debido a su precisión gráfica y compacidad.
+En el Entregable 3 las claves se nombraron provisionalmente con prefijos (`id_libro`, `id_usuario`, etc.). Para el DER y la implementación en software, todas las claves primarias se simplifican a `id` (evitando redundancias como `libros.id_libro`) y todas las claves foráneas adoptan el formato `[entidad]_id` para distinguir claramente las referencias externas:
 
-La notación define dos componentes esenciales en los extremos de cada línea de relación:
-- **Participación / Cardinalidad Mínima (Símbolo interior más cercano a la línea):**
-  - Círculo (`o`): Participación opcional (cardinalidad mínima `0`).
-  - Barra transversal (`|`): Participación obligatoria (cardinalidad mínima `1`).
-- **Multiplicidad / Cardinalidad Máxima (Símbolo exterior más cercano a la entidad):**
-  - Barra transversal (`|`): Cardinalidad máxima `1` (uno y solo uno).
-  - Pata de gallo con tres líneas abiertas (`{`): Cardinalidad máxima `N` (muchos).
-
-Combinando ambos símbolos se obtienen los conectores exactos utilizados en este modelo:
-- `||--o{` : Uno obligatorio a Cero o Muchos (1 a 0..N).
-- `||--|{` : Uno obligatorio a Uno o Muchos (1 a 1..N).
-- `||--o|` : Uno obligatorio a Cero o Uno (1 a 0..1).
-- `||--||` : Uno obligatorio a Uno obligatorio (1 a 1).
+- **Ejemplo 1 (PK):** `libros.id_libro` → `libros.id`
+- **Ejemplo 2 (FK):** `prestamos.id_usuario` → `prestamos.usuario_id` (referencia a `usuarios(id)`)
 
 ---
 
-## 2. Evolución de Nombres: Simplificación de Claves (PK y FK)
+## 2. Diagrama Entidad-Relación a Nivel Conceptual
 
-### 2.1 Justificación Técnica de PK Unificada como `id`
+### 2.1 Modelado Semántico de Alto Nivel
 
-En el proceso de normalización analítica (Entregable 3), las claves primarias se nombraron provisionalmente con prefijos contextuales (`id_tipo`, `id_usuario`, `id_autor`, `id_libro`, etc.). 
-
-Para el diseño del Diagrama Entidad-Relación y la subsiguiente implementación en software, se aplica la **regla de simplificación a `id`**, sustentada en sólidos principios de ingeniería de software y diseño relacional moderno (adoptado por frameworks industriales líderes como Ruby on Rails, Django, Laravel y estándares RESTful):
-
-1. **Contexto Autosuficiente:** Dentro de la tabla `libros`, la columna `id` es intrínsecamente el identificador del libro; calificarlo como `libros.id_libro` incurre en una redundancia léxica (pleonasmo estructural).
-2. **Polimorfismo e Interfaz Homogénea:** En el desarrollo de software y consultas genéricas (CRUD), todas las entidades comparten una propiedad identificadora uniforme (`$entidad->id` o `WHERE id = ?`), lo que reduce drásticamente la tasa de error por tipografía en controladores y modelos.
-3. **Claridad Sintáctica:** Permite escribir consultas concisas y limpias al referirse a la entidad propietaria de los datos.
-
-### 2.2 Estandarización de Claves Foráneas con Formato `[entidad]_id`
-
-Cuando una clave primaria migra hacia otra tabla para materializar una relación, deja de ser el identificador del registro actual para convertirse en un enlace referencial externo. Por ello, todas las claves foráneas (`FK`) se estandarizan formalmente bajo el sufijo `_id`:
-
-- En `usuarios`: `tipo_id` hace referencia a `tipos_usuario(id)`.
-- En `libros`: `autor_id` hace referencia a `autores(id)`.
-- En `libros`: `categoria_id` hace referencia a `categorias(id)`.
-- En `ejemplares`: `libro_id` hace referencia a `libros(id)`.
-- En `prestamos`: `usuario_id` hace referencia a `usuarios(id)`.
-- En `prestamos`: `ejemplar_id` hace referencia a `ejemplares(id)`.
-- En `multas`: `prestamo_id` hace referencia a `prestamos(id)`.
-
-Esta convención genera una lectura natural e inmediata en las cláusulas de unión relacional:
-```sql
-SELECT * 
-FROM libros l
-JOIN autores a ON l.autor_id = a.id
-JOIN ejemplares e ON e.libro_id = l.id;
-```
-
----
-
-## 3. Diagrama Entidad-Relación a Nivel Conceptual
-
-### 3.1 Modelado Semántico de Alto Nivel
-
-El nivel conceptual representa la visión holística del negocio bibliotecario universitario. Identifica las 8 entidades clave y los roles activos que desempeñan en los procesos institucionales.
+El nivel conceptual representa la visión holística del negocio bibliotecario universitario. Identifica las 9 entidades clave y los roles activos que desempeñan en los procesos institucionales.
 
 ```mermaid
 flowchart TD
@@ -94,6 +46,7 @@ flowchart TD
     %% Entidades
     TIPOS_USUARIO["TIPOS DE USUARIO"]:::usuarios
     USUARIOS["USUARIOS (PADRON)"]:::usuarios
+    BIBLIOTECARIOS["BIBLIOTECARIOS (PERSONAL)"]:::usuarios
     AUTORES["AUTORES"]:::catalogo
     CATEGORIAS["CATEGORIAS"]:::catalogo
     LIBROS["LIBROS (CATALOGO)"]:::catalogo
@@ -108,25 +61,27 @@ flowchart TD
     LIBROS -->|"Se materializa en copias físicas (1:N)"| EJEMPLARES
     USUARIOS -->|"Solicita y toma en préstamo (1:N)"| PRESTAMOS
     EJEMPLARES -->|"Circula físicamente en (1:N)"| PRESTAMOS
+    BIBLIOTECARIOS -->|"Atiende y registra (1:N)"| PRESTAMOS
     PRESTAMOS -->|"Genera por vencimiento moroso (1:0..1)"| MULTAS
+    BIBLIOTECARIOS -->|"Gestiona y cobra (1:N)"| MULTAS
 ```
 
-### 3.2 Descripción de Subsistemas de Negocio
+### 2.2 Descripción de Subsistemas de Negocio
 
 El modelo conceptual se compone armónicamente de tres grandes subsistemas interdependientes:
 
 1. **Subsistema de Catálogo e Inventario Bibliográfico (`AUTORES`, `CATEGORIAS`, `LIBROS`, `EJEMPLARES`):**  
    Gestiona el patrimonio intelectual y físico de la institución. Separa la entidad intelectual (`LIBROS`) de su encarnación física en estantes (`EJEMPLARES`), garantizando que la pérdida, mantenimiento o adición de una copia tangible no altere la ficha bibliográfica del catálogo.
-2. **Subsistema de Comunidad y Usuarios (`TIPOS_USUARIO`, `USUARIOS`):**  
-   Administra el padrón de beneficiarios del servicio bibliotecario (alumnos, docentes e investigadores), vinculándolos con perfiles institucionales parametrizables que definen cuántos libros pueden retirar simultáneamente y por cuántos días continuos.
+2. **Subsistema de Comunidad, Usuarios y Personal (`TIPOS_USUARIO`, `USUARIOS`, `BIBLIOTECARIOS`):**  
+   Administra tanto el padrón de beneficiarios del servicio bibliotecario (alumnos y docentes) vinculados con sus políticas de préstamo, como el registro independiente de los trabajadores de la biblioteca (`BIBLIOTECARIOS`) encargados de operar el sistema y autorizar movimientos en mostrador.
 3. **Subsistema de Circulación, Préstamos y Control de Morosidad (`PRESTAMOS`, `MULTAS`):**  
-   Registra el flujo transaccional en tiempo real: la entrega en mostrador de un ejemplar específico a un usuario identificado, el control de plazos de compromiso y el cómputo automático de sanciones financieras ante devoluciones extemporáneas.
+   Registra el flujo transaccional en tiempo real: la entrega en mostrador de un ejemplar específico a un usuario identificado bajo la atención de un bibliotecario, el control de plazos de compromiso y el cómputo automático de sanciones financieras ante devoluciones extemporáneas.
 
 ---
 
-## 4. Diagrama Entidad-Relación a Nivel Lógico (Crow's Foot)
+## 3. Diagrama Entidad-Relación a Nivel Lógico
 
-A continuación se presenta el Diagrama Entidad-Relación Lógico en notación Crow's Foot, detallando las 8 entidades normalizadas, sus atributos, tipos de datos, claves primarias unificadas como `id` y claves foráneas bajo el estándar `[entidad]_id`:
+A continuación se presenta el Diagrama Entidad-Relación Lógico en notación Crow's Foot, detallando las 9 entidades normalizadas, sus atributos, tipos de datos, claves primarias unificadas como `id` y claves foráneas bajo el estándar `[entidad]_id`:
 
 ```mermaid
 erDiagram
@@ -144,6 +99,15 @@ erDiagram
         varchar nombre_completo
         varchar correo
         varchar telefono
+        varchar estado
+    }
+
+    BIBLIOTECARIOS {
+        int id PK
+        varchar num_empleado
+        varchar nombre_completo
+        varchar correo
+        varchar password_hash
         varchar estado
     }
 
@@ -182,6 +146,7 @@ erDiagram
         int id PK
         int usuario_id FK
         int ejemplar_id FK
+        int bibliotecario_id FK
         date fecha_salida
         date fecha_compromiso
         date fecha_devolucion_real
@@ -191,6 +156,7 @@ erDiagram
     MULTAS {
         int id PK
         int prestamo_id FK
+        int bibliotecario_id FK
         int dias_retraso
         decimal monto_total
         date fecha_generacion
@@ -204,12 +170,14 @@ erDiagram
     LIBROS ||--|{ EJEMPLARES : "posee copias (1 a 1..N)"
     USUARIOS ||--o{ PRESTAMOS : "solicita (1 a 0..N)"
     EJEMPLARES ||--o{ PRESTAMOS : "circula en (1 a 0..N)"
+    BIBLIOTECARIOS ||--o{ PRESTAMOS : "registra (1 a 0..N)"
     PRESTAMOS ||--o| MULTAS : "puede generar (1 a 0..1)"
+    BIBLIOTECARIOS ||--o{ MULTAS : "gestiona (1 a 0..N)"
 ```
 
 ---
 
-## 5. Matriz Detallada de Relaciones y Cardinalidades
+## 4. Matriz Detallada de Relaciones y Cardinalidades
 
 La siguiente matriz documenta formalmente la totalidad de las dependencias relacionales, indicando la clave primaria origen, la clave foránea receptora y las restricciones de multiplicidad en ambos extremos:
 
@@ -222,12 +190,14 @@ La siguiente matriz documenta formalmente la totalidad de las dependencias relac
 | **5** | `USUARIOS` | `id` | `1` (Obligatoria) | Solicita | `0..N` (Opcional) | `PRESTAMOS` | `usuario_id` | Un usuario universitario puede registrar un histórico de cero o múltiples solicitudes de préstamo; un registro transaccional de préstamo pertenece y es imputado a un único usuario responsable. |
 | **6** | `EJEMPLARES` | `id` | `1` (Obligatoria) | Circula en | `0..N` (Opcional) | `PRESTAMOS` | `ejemplar_id` | Un ejemplar físico individual puede prestarse a lo largo de su vida útil cero o múltiples veces; cada préstamo transaccional involucra la custodia temporal de una única copia física identificada por marbete. |
 | **7** | `PRESTAMOS` | `id` | `1` (Obligatoria) | Genera en mora | `0..1` (Opcional) | `MULTAS` | `prestamo_id` | Un préstamo cumplido en tiempo y forma no devenga sanción alguna (cardinalidad mínima `0`); si incurre en retraso, devenga como máximo una única multa global liquidable (cardinalidad máxima `1`). |
+| **8** | `BIBLIOTECARIOS` | `id` | `1` (Obligatoria) | Registra | `0..N` (Opcional) | `PRESTAMOS` | `bibliotecario_id` | Un bibliotecario puede autorizar cero o muchos préstamos; cada préstamo registrado en mostrador debe asociarse obligatoriamente al bibliotecario responsable. |
+| **9** | `BIBLIOTECARIOS` | `id` | `1` (Obligatoria) | Gestiona / Cobra | `0..N` (Opcional) | `MULTAS` | `bibliotecario_id` | Un bibliotecario puede gestionar o cobrar cero o múltiples multas; la clave foránea en `MULTAS` admite `NULL` si la sanción se genera automáticamente antes de su cobro en caja. |
 
 ---
 
-## 6. Políticas de Integridad Referencial y Restricciones de Dominio
+## 5. Políticas de Integridad Referencial y Restricciones de Dominio
 
-### 6.1 Acciones de Disparador Referencial (`ON DELETE` / `ON UPDATE`)
+### 5.1 Acciones de Disparador Referencial (`ON DELETE` / `ON UPDATE`)
 
 La integridad referencial garantiza que la base de datos nunca albergue registros huérfanos o enlaces rotos. En el Diagrama Entidad-Relación Lógico, estas restricciones se formalizan como políticas declarativas:
 
@@ -259,20 +229,31 @@ La integridad referencial garantiza que la base de datos nunca albergue registro
 7. PRESTAMOS -> MULTAS
    - ON UPDATE CASCADE: Sincronización en cascada del identificador de préstamo.
    - ON DELETE RESTRICT: Protege la trazabilidad financiera; una multa vigente o pagada prohíbe el borrado de la transacción de préstamo que la originó.
+
+8. BIBLIOTECARIOS -> PRESTAMOS
+   - ON UPDATE CASCADE: Sincronización en cascada del identificador del bibliotecario.
+   - ON DELETE RESTRICT: Impide eliminar físicamente a un bibliotecario que haya registrado préstamos históricos.
+
+9. BIBLIOTECARIOS -> MULTAS
+   - ON UPDATE CASCADE: Sincronización en cascada del identificador del bibliotecario.
+   - ON DELETE RESTRICT: Impide eliminar físicamente a un bibliotecario que haya gestionado o cobrado multas.
 ```
 
-### 6.2 Restricciones de Unicidad y Dominio
+### 5.2 Restricciones de Unicidad y Dominio
 
 Para complementar el Diagrama Entidad-Relación y prevenir estados anómalos antes de la persistencia:
 
 - **Restricciones de Unicidad (`UNIQUE`):**
   - `usuarios.matricula_num_emp`: Clave única para evitar suplantaciones de identidad.
   - `usuarios.correo`: Correo institucional unívoco por cuenta.
+  - `bibliotecarios.num_empleado`: Número de empleado institucional único por trabajador.
+  - `bibliotecarios.correo`: Correo institucional único para autenticación.
   - `libros.isbn`: Código ISBN unívoco para evitar duplicación de fichas catalográficas idénticas.
   - `ejemplares.codigo_inventario`: Marbete de código de barras único para cada volumen físico.
   - `multas.prestamo_id`: Restricción única para garantizar estrictamente la cardinalidad `1 a (0..1)`.
 - **Restricciones de Integridad de Estado (`CHECK` / `ENUM` conceptual):**
   - `usuarios.estado`: Solo admite valores de dominio válidos (`Activo`, `Inactivo`, `Bloqueado`).
+  - `bibliotecarios.estado`: Solo admite valores de dominio válidos (`Activo`, `Inactivo`).
   - `ejemplares.estado_conservacion`: Restringido a (`Excelente`, `Bueno`, `Dañado`).
   - `ejemplares.estado_disponibilidad`: Restringido a (`Disponible`, `Prestado`, `En Reparacion`).
   - `prestamos.estado_prestamo`: Restringido a (`Activo`, `Devuelto`, `Vencido`).

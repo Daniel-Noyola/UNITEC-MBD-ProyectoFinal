@@ -29,7 +29,7 @@
    - [5.2 Desacoplamiento de Entidades Catálogo: Autores y Categorías](#52-desacoplamiento-de-entidades-catálogo-autores-y-categorías)
    - [5.3 Desacoplamiento de Políticas: Tipos de Usuario](#53-desacoplamiento-de-políticas-tipos-de-usuario)
    - [5.4 Desacoplamiento Financiero: Gestión Independiente de Multas](#54-desacoplamiento-financiero-gestión-independiente-de-multas)
-6. [Consolidación de la Arquitectura Relacional en 3FN (8 Tablas)](#6-consolidación-de-la-arquitectura-relacional-en-3fn-8-tablas)
+6. [Consolidación de la Arquitectura Relacional en 3FN (9 Tablas)](#6-consolidación-de-la-arquitectura-relacional-en-3fn-9-tablas)
    - [6.1 Catálogo de Tablas Resultantes](#61-catálogo-de-tablas-resultantes)
    - [6.2 Esquema Relacional Formal (PK y FK)](#62-esquema-relacional-formal-pk-y-fk)
    - [6.3 Matriz de Trazabilidad y Normalización](#63-matriz-de-trazabilidad-y-normalización)
@@ -319,9 +319,9 @@ Aunque el cálculo de la sanción proviene de un préstamo excedido en fecha, la
 
 ---
 
-## 6. Consolidación de la Arquitectura Relacional en 3FN (8 Tablas)
+## 6. Consolidación de la Arquitectura Relacional en 3FN (9 Tablas)
 
-Tras completar el proceso de análisis y descomposición, se obtiene una arquitectura relacional sólida y equilibrada conformada por **exactamente 8 tablas** en **Tercera Forma Normal (3FN)**.
+Tras completar el proceso de análisis y descomposición, se obtiene una arquitectura relacional sólida y equilibrada conformada por **exactamente 9 tablas** en **Tercera Forma Normal (3FN)**. Asimismo, se separa explícitamente al personal operativo de la biblioteca (`BIBLIOTECARIOS`) del padrón de prestatarios (`USUARIOS`), garantizando que las credenciales de acceso administrativo no se mezclen con los beneficiarios y aportando trazabilidad en `PRESTAMOS` y `MULTAS`.
 
 ### 6.1 Catálogo de Tablas Resultantes
 
@@ -342,19 +342,28 @@ Padrón institucional de alumnos y profesores habilitados para solicitar servici
 - `estado`: Condición operativa del usuario (`Activo`, `Bloqueado`).
 - `id_tipo` [FK]: Llave foránea hacia `TIPOS_USUARIO(id_tipo)`.
 
-#### 3. Tabla: `AUTORES`
+#### 3. Tabla: `BIBLIOTECARIOS`
+Padrón de trabajadores y administradores de la biblioteca autorizados para operar el sistema web y atender préstamos y cobros en mostrador.
+- `id_bibliotecario` [PK]: Identificador único del bibliotecario.
+- `num_empleado`: Número de empleado institucional único del trabajador.
+- `nombre_completo`: Nombre y apellidos del bibliotecario.
+- `correo`: Correo electrónico institucional único para inicio de sesión.
+- `password_hash`: Hash seguro de la contraseña de acceso al sistema.
+- `estado`: Condición operativa de la cuenta (`Activo`, `Inactivo`).
+
+#### 4. Tabla: `AUTORES`
 Directorio de autores literarios e intelectuales de las obras existentes.
 - `id_autor` [PK]: Identificador único del autor.
 - `nombre_autor`: Nombre completo o de pluma del autor.
 - `nacionalidad`: País o nacionalidad de origen.
 
-#### 4. Tabla: `CATEGORIAS`
+#### 5. Tabla: `CATEGORIAS`
 Clasificación temática del acervo bibliográfico.
 - `id_categoria` [PK]: Identificador único de la categoría.
 - `nombre_categoria`: Nombre del área de conocimiento (e.g. *Bases de Datos*, *Ingeniería de Software*).
 - `descripcion`: Reseña del tipo de literatura clasificada.
 
-#### 5. Tabla: `LIBROS`
+#### 6. Tabla: `LIBROS`
 Catálogo de obras intelectuales registradas en el sistema (título y metadatos bibliográficos).
 - `id_libro` [PK]: Identificador único del título.
 - `titulo`: Nombre completo de la obra.
@@ -364,7 +373,7 @@ Catálogo de obras intelectuales registradas en el sistema (título y metadatos 
 - `id_autor` [FK]: Llave foránea hacia `AUTORES(id_autor)`.
 - `id_categoria` [FK]: Llave foránea hacia `CATEGORIAS(id_categoria)`.
 
-#### 6. Tabla: `EJEMPLARES`
+#### 7. Tabla: `EJEMPLARES`
 Representa cada una de las copias físicas reales que se encuentran en las estanterías de la biblioteca.
 - `id_ejemplar` [PK]: Identificador único de la copia.
 - `id_libro` [FK]: Llave foránea hacia `LIBROS(id_libro)`.
@@ -373,22 +382,24 @@ Representa cada una de las copias físicas reales que se encuentran en las estan
 - `estado_conservacion`: Condición física (`Excelente`, `Bueno`, `Regular`, `Dañado`).
 - `estado_disponibilidad`: Situación de circulación (`Disponible`, `Prestado`, `En Mantenimiento`, `Extraviado`).
 
-#### 7. Tabla: `PRESTAMOS`
-Transacciones de circulación que asocian a un usuario con un ejemplar físico específico en una ventana de tiempo.
+#### 8. Tabla: `PRESTAMOS`
+Transacciones de circulación que asocian a un usuario con un ejemplar físico específico en una ventana de tiempo, bajo la atención de un bibliotecario.
 - `id_prestamo` [PK]: Identificador único del movimiento de préstamo.
 - `id_usuario` [FK]: Llave foránea hacia `USUARIOS(id_usuario)`.
 - `id_ejemplar` [FK]: Llave foránea hacia `EJEMPLARES(id_ejemplar)`.
+- `id_bibliotecario` [FK]: Llave foránea hacia `BIBLIOTECARIOS(id_bibliotecario)` (estandarizada como `bibliotecario_id` en el DER y DDL).
 - `fecha_salida`: Fecha y hora en que se entrega el libro en mostrador.
 - `fecha_compromiso`: Fecha límite fijada para la devolución sin sanción.
 - `fecha_devolucion_real`: Fecha en que el libro reingresó físicamente a la biblioteca (`NULL` si sigue prestado).
 - `estado_prestamo`: Condición del préstamo (`Activo`, `Devuelto`, `Vencido`).
 
-#### 8. Tabla: `MULTAS`
+#### 9. Tabla: `MULTAS`
 Registro y seguimiento financiero de sanciones económicas originadas por incumplimiento de plazos de devolución.
 - `id_multa` [PK]: Identificador único de la sanción.
 - `id_prestamo` [FK]: Llave foránea hacia `PRESTAMOS(id_prestamo)`.
+- `id_bibliotecario` [FK]: Llave foránea opcional (`NULL` permitido) hacia `BIBLIOTECARIOS(id_bibliotecario)` que registra al trabajador que gestiona o cobra la multa (estandarizada como `bibliotecario_id` en el DER y DDL).
 - `dias_retraso`: Días transcurridos entre la fecha de compromiso y la devolución real (o fecha actual).
-- `monto_total`: Importe monetario a pagar calculado a razón de $15.00 MXN por día de retraso.
+- `monto_total`: Importe monetario a pagar calculado a razón de $10.00 MXN por día de retraso.
 - `fecha_generacion`: Momento en que el sistema determina la penalización.
 - `estado_pago`: Estatus de cobro (`Pendiente`, `Pagada`, `Exonerada`).
 
@@ -414,6 +425,15 @@ USUARIOS (
     telefono,
     estado,
     id_tipo [FK] -> TIPOS_USUARIO.id_tipo
+)
+
+BIBLIOTECARIOS (
+    id_bibliotecario [PK],
+    num_empleado,
+    nombre_completo,
+    correo,
+    password_hash,
+    estado
 )
 
 AUTORES (
@@ -451,6 +471,7 @@ PRESTAMOS (
     id_prestamo [PK],
     id_usuario [FK] -> USUARIOS.id_usuario,
     id_ejemplar [FK] -> EJEMPLARES.id_ejemplar,
+    id_bibliotecario [FK] -> BIBLIOTECARIOS.id_bibliotecario,
     fecha_salida,
     fecha_compromiso,
     fecha_devolucion_real,
@@ -460,6 +481,7 @@ PRESTAMOS (
 MULTAS (
     id_multa [PK],
     id_prestamo [FK] -> PRESTAMOS.id_prestamo,
+    id_bibliotecario [FK] -> BIBLIOTECARIOS.id_bibliotecario,
     dias_retraso,
     monto_total,
     fecha_generacion,
@@ -471,18 +493,19 @@ MULTAS (
 
 ### 6.3 Matriz de Trazabilidad y Normalización
 
-La siguiente tabla resume cómo cada una de las 8 tablas de la base de datos alcanzó formalmente la 3FN y qué regla de negocio del sistema sustenta:
+La siguiente tabla resume cómo cada una de las 9 tablas de la base de datos alcanzó formalmente la 3FN y qué regla de negocio del sistema sustenta:
 
 | Tabla Resultante | Forma Alcanzada | Justificación Teórica de la Descomposición | Regla de Negocio / Propósito Operativo |
 |---|---|---|---|
-| `TIPOS_USUARIO` | **3FN** | Erradica la dependencia transitiva de políticas (`limite_libros`, `dias_prestamo`) respecto a los datos personales del usuario. | **RN-04:** Límites diferenciados por tipo de prestatario. |
-| `USUARIOS` | **3FN** | Centraliza los datos del individuo en un único registro atómico. Su clave primaria es simple (`id_usuario`). | **RN-03 y RN-05:** Control del padrón, contacto y suspensión por adeudos. |
+| `TIPOS_USUARIO` | **3FN** | Erradica la dependencia transitiva de políticas (`limite_libros`, `dias_prestamo`) respecto a los datos personales del usuario. | **RN-03:** Límites diferenciados por tipo de prestatario. |
+| `USUARIOS` | **3FN** | Centraliza los datos del individuo en un único registro atómico. Su clave primaria es simple (`id_usuario`). | **RN-03 y RN-04:** Control del padrón, contacto y suspensión por adeudos. |
+| `BIBLIOTECARIOS` | **3FN** | Separa al personal operador/administrador respecto al padrón de prestatarios, evitando mezclar credenciales con beneficiarios. | **RN-07:** Acceso autenticado y trazabilidad de operadores. |
 | `AUTORES` | **3FN** | Erradica la dependencia transitiva de la nacionalidad del autor respecto al libro. | Integridad de catálogo; un autor puede tener múltiples obras sin duplicar su biografía. |
 | `CATEGORIAS` | **3FN** | Aísla la descripción y nomenclatura temática para que no dependan del libro. | Clasificación temática consistente y filtros de búsqueda rápida. |
 | `LIBROS` | **3FN** | Representa la obra intelectual con atributos dependientes únicamente de la obra (`id_libro`). Sus foráneas apuntan a autor y categoría en 3FN. | **RN-01:** Desacoplamiento entre la obra y sus copias físicas en anaquel. |
 | `EJEMPLARES` | **3FN** | Elimina la dependencia parcial del estado y ubicación respecto a la obra. Cada copia física tiene identidad propia e irrepetible. | **RN-01 y RN-02:** Gestión de copias individuales, ubicación y estatus de disponibilidad. |
-| `PRESTAMOS` | **3FN** | Registra el evento transaccional puro entre un usuario y un ejemplar. Elimina redundancia de datos personales o bibliográficos. | **RN-02 y RN-03:** Préstamo de copias disponibles y control de fechas de retorno. |
-| `MULTAS` | **3FN** | Elimina valores nulos y dependencias transitivas en préstamos sin mora, formalizando el cobro financiero como entidad propia. | **RN-05:** Cálculo de penalizaciones ($15.00/día) y trazabilidad del estado de pago. |
+| `PRESTAMOS` | **3FN** | Registra el evento transaccional puro entre un usuario, un ejemplar y el bibliotecario que lo atiende. Elimina redundancia de datos personales o bibliográficos. | **RN-02, RN-03 y RN-07:** Préstamo de copias disponibles, control de fechas y trazabilidad del operador. |
+| `MULTAS` | **3FN** | Elimina valores nulos y dependencias transitivas en préstamos sin mora, formalizando el cobro financiero y el bibliotecario gestor como entidad propia. | **RN-05, RN-06 y RN-07:** Cálculo de penalizaciones ($10.00/día) y trazabilidad de cobro. |
 
 ---
 
@@ -520,14 +543,14 @@ El valor práctico fundamental de alcanzar la Tercera Forma Normal reside en que
 
 ## 8. Conclusión y Vinculación con los Siguientes Entregables
 
-El proceso de análisis y normalización documentado en este entregable demuestra cómo, a partir de dos registros operacionales dispersos y desordenados (0FN), se deriva una estructura de datos robusta, escalable y depurada en **Tercera Forma Normal (3FN)** conformada por **8 tablas**.
+El proceso de análisis y normalización documentado en este entregable demuestra cómo, a partir de dos registros operacionales dispersos y desordenados (0FN), se deriva una estructura de datos robusta, escalable y depurada en **Tercera Forma Normal (3FN)** conformada por **9 tablas**.
 
 Este diseño cumple cabalmente con los requisitos obligatorios del proyecto:
-1. **Rango de tablas:** Se sitúa con exactitud en el rango normativo de 7 a 9 tablas.
+1. **Rango de tablas:** Se sitúa con exactitud dentro del rango normativo de 7 a 9 tablas.
 2. **Nivel formal:** Alcanza 3FN garantizando que cada atributo dependa de la clave, de toda la clave y de nada más que de la clave.
-3. **Respaldo operativo:** Brinda soporte directo a los 5 módulos funcionales del sistema (Catálogo, Usuarios, Préstamos, Devoluciones y Multas).
+3. **Respaldo operativo:** Brinda soporte directo a los módulos funcionales del sistema (Catálogo, Usuarios, Bibliotecarios/Administradores, Préstamos, Devoluciones y Multas).
 
 ### Conexión con los Entregables Siguientes
 
-- **Hacia el Entregable 4 (Diagrama Entidad-Relación - DER):** Este documento proporciona las entidades (`TIPOS_USUARIO`, `USUARIOS`, `AUTORES`, `CATEGORIAS`, `LIBROS`, `EJEMPLARES`, `PRESTAMOS`, `MULTAS`), sus llaves primarias y las relaciones (1:N) que serán representadas visualmente mediante la notación gráfica formal de cardinalidades y atributos.
+- **Hacia el Entregable 4 (Diagrama Entidad-Relación - DER):** Este documento proporciona las entidades (`TIPOS_USUARIO`, `USUARIOS`, `BIBLIOTECARIOS`, `AUTORES`, `CATEGORIAS`, `LIBROS`, `EJEMPLARES`, `PRESTAMOS`, `MULTAS`), sus llaves primarias y las relaciones (1:N) que serán representadas visualmente mediante la notación gráfica formal de cardinalidades y atributos.
 - **Hacia el Entregable 5 (Diccionario de Datos y DDL):** La estructura aquí normalizada servirá como base para definir el Diccionario de Datos técnico (especificando los tipos de datos exactos `INT`, `VARCHAR`, `DECIMAL`, `DATETIME`, restricciones `CHECK`, `NOT NULL`, `UNIQUE` y motores de almacenamiento `InnoDB`) y la programación de las **5 consultas relacionales complejas con `JOIN`** exigidas en la rúbrica del proyecto.

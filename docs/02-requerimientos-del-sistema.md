@@ -34,8 +34,6 @@ El propósito central de este documento es formalizar:
 3. El catálogo de **Historias de Usuario (HU)** redactadas con criterios de aceptación en formato BDD (*Given / When / Then*).
 4. La **Matriz de Trazabilidad** que vincula cada requerimiento funcional con su respectiva historia de usuario y las reglas de negocio aplicadas.
 
-Esta especificación actúa como contrato funcional directo para las siguientes fases del proyecto: el diseño y normalización de la base de datos (7 a 9 tablas en 3FN), la construcción del Diagrama Entidad-Relación (DER), el Diccionario de Datos y el posterior desarrollo de la aplicación web sobre WAMP.
-
 ---
 
 ## 2. Catálogo de Actores del Sistema
@@ -90,12 +88,17 @@ Las condiciones de préstamo se rigen estrictamente según el tipo de usuario:
 
 ### RN-06: Liquidación y Comprobación de Multas
 - Toda multa generada inicia con estatus **Pendiente**.
-- Solo el personal bibliotecario puede registrar el pago de una multa, cambiando su estatus a **Pagada** y registrando la fecha exacta de cobro.
+- Solo el personal bibliotecario activo puede registrar el pago de una multa, cambiando su estatus a **Pagada**, registrando la fecha exacta de cobro y vinculando al bibliotecario que recibió el pago.
 - Ninguna multa registrada puede ser eliminada físicamente de la base de datos para preservar la trazabilidad contable y auditoría de ingresos.
+
+### RN-07: Acceso Autenticado Exclusivo y Trazabilidad de Bibliotecarios
+- Los trabajadores de la biblioteca (administradores del sistema) se almacenan de forma independiente al padrón de prestatarios (`Alumnos` y `Docentes`), identificados por su número de empleado y correo institucional único, con contraseña cifrada (`password_hash`) y estado operativo (`Activo` / `Inactivo`).
+- **Acceso exclusivo de operadores:** Únicamente los bibliotecarios en estado **Activo** pueden iniciar sesión para operar el sistema web. Los alumnos y docentes **no cuentan con acceso directo ni credenciales**; para consultar disponibilidad, solicitar préstamos, devolver libros o liquidar multas deben acudir presencialmente con el bibliotecario en mostrador.
+- Todo préstamo registrado debe asociarse obligatoriamente al bibliotecario que lo atiende en mostrador; asimismo, las multas registran al bibliotecario que gestiona o liquida la sanción.
 
 ---
 
-## 4. Especificación de Requerimientos Funcionales (IEEE 830)
+## 4. Especificación de Requerimientos Funcionales
 
 Los requerimientos funcionales describen los comportamientos y servicios fundamentales que debe proveer el sistema, organizados por módulos operativos.
 
@@ -145,6 +148,14 @@ Los requerimientos funcionales describen los comportamientos y servicios fundame
 - **Salidas:** Ficha de solvencia que muestra préstamos vigentes, multas pendientes y dictamen de habilitación para nuevo préstamo.
 - **Reglas Asociadas:** RN-03, RN-04.
 
+#### RF-11: Gestión y Autenticación de Bibliotecarios (Administradores)
+- **Módulo:** Administración y Personal
+- **Prioridad:** Alta
+- **Descripción:** El sistema permitirá registrar y consultar cuentas de bibliotecarios (trabajadores de la biblioteca), así como autenticar su acceso mediante correo y contraseña cifrada.
+- **Entradas:** Número de empleado, Nombre completo, Correo institucional, Contraseña (almacenada como `password_hash`) y Estado (`Activo` / `Inactivo`).
+- **Salidas:** Sesión iniciada para el operador autenticado o registro de bibliotecario creado/actualizado.
+- **Reglas Asociadas:** RN-07. El número de empleado y el correo deben ser únicos en la tabla de bibliotecarios.
+
 ---
 
 ### 4.3 Módulo 3: Préstamos y Devoluciones (Circulación)
@@ -152,10 +163,10 @@ Los requerimientos funcionales describen los comportamientos y servicios fundame
 #### RF-06: Registro de Préstamo de Ejemplares
 - **Módulo:** Circulación
 - **Prioridad:** Alta
-- **Descripción:** El sistema permitirá formalizar el préstamo de uno o varios ejemplares físicos a un usuario, validando automáticamente sus límites y solvencia antes de autorizar la transacción.
-- **Entradas:** Identificador del usuario, Código(s) de inventario del ejemplar o ejemplares solicitados.
-- **Salidas:** Comprobante de préstamo con ID de transacción, fecha/hora de salida, fecha límite de devolución pactada y cambio de estatus de cada ejemplar a *Prestado*.
-- **Reglas Asociadas:** RN-02, RN-03, RN-04. Si el usuario está bloqueado o supera el límite permitido, la transacción se rechaza de inmediato.
+- **Descripción:** El sistema permitirá formalizar el préstamo de uno o varios ejemplares físicos a un usuario, validando automáticamente sus límites y solvencia antes de autorizar la transacción y registrando al bibliotecario responsable.
+- **Entradas:** Identificador del usuario, Código(s) de inventario del ejemplar o ejemplares solicitados, Identificador del bibliotecario autenticado.
+- **Salidas:** Comprobante de préstamo con ID de transacción, bibliotecario que atendió, fecha/hora de salida, fecha límite de devolución pactada y cambio de estatus de cada ejemplar a *Prestado*.
+- **Reglas Asociadas:** RN-02, RN-03, RN-04, RN-07. Si el usuario está bloqueado o supera el límite permitido, la transacción se rechaza de inmediato.
 
 #### RF-07: Registro de Devolución de Ejemplares
 - **Módulo:** Circulación
@@ -180,10 +191,10 @@ Los requerimientos funcionales describen los comportamientos y servicios fundame
 #### RF-09: Cobro y Liquidación de Multas
 - **Módulo:** Sanciones y Multas
 - **Prioridad:** Alta
-- **Descripción:** El sistema permitirá al bibliotecario registrar la liquidación de las multas pendientes de un usuario, actualizando su estatus de pago y restableciendo la habilitación del usuario si no restan otros adeudos.
-- **Entradas:** Folio de multa o Matrícula/No. Empleado del usuario, Confirmación de cobro recibido.
-- **Salidas:** Estatus de la multa actualizado a *Pagada*, fecha/hora de liquidación registrada y actualización del estatus del usuario a *Habilitado* (si no adeuda otros libros o multas).
-- **Reglas Asociadas:** RN-04, RN-06.
+- **Descripción:** El sistema permitirá al bibliotecario registrar la liquidación de las multas pendientes de un usuario, actualizando su estatus de pago, registrando al bibliotecario que cobró y restableciendo la habilitación del usuario si no restan otros adeudos.
+- **Entradas:** Folio de multa o Matrícula/No. Empleado del usuario, Identificador del bibliotecario autenticado, Confirmación de cobro recibido.
+- **Salidas:** Estatus de la multa actualizado a *Pagada*, bibliotecario responsable vinculado, fecha/hora de liquidación registrada y actualización del estatus del usuario a *Habilitado* (si no adeuda otros libros o multas).
+- **Reglas Asociadas:** RN-04, RN-06, RN-07.
 
 ---
 
@@ -195,13 +206,13 @@ Los requerimientos funcionales describen los comportamientos y servicios fundame
 - **Descripción:** El sistema proveerá una vista de monitoreo operativo que permita al personal bibliotecario consultar indicadores clave consolidados: préstamos activos, usuarios con entregas demoradas, libros con mayor frecuencia de préstamo y recaudación total de multas.
 - **Entradas:** Selección de reporte o filtro temporal (fecha inicio / fecha fin).
 - **Salidas:** Tablas de resultados consolidados con información combinada de libros, préstamos, usuarios y multas.
-- **Reglas Asociadas:** RN-01 a RN-06. Este requerimiento establece la base para las 5 consultas relacionales complejas con `JOIN` que se desarrollarán en el diseño de base de datos.
+- **Reglas Asociadas:** RN-01 a RN-07. Este requerimiento establece la base para las 5 consultas relacionales complejas con `JOIN` que se desarrollarán en el diseño de base de datos.
 
 ---
 
 ## 5. Historias de Usuario (HU)
 
-A continuación se presentan las Historias de Usuario redactadas bajo la perspectiva de los roles involucrados, complementadas con criterios de aceptación en formato BDD (*Dado que / Cuando / Entonces*):
+A continuación se presentan las Historias de Usuario redactadas bajo la perspectiva de los roles involucrados, complementadas con criterios de aceptación:
 
 ### HU-01: Registro de Nuevas Obras en el Catálogo
 - **Como** Bibliotecario,  
@@ -232,7 +243,7 @@ A continuación se presentan las Historias de Usuario redactadas bajo la perspec
     *Entonces* el sistema impide la inserción y alerta sobre la duplicidad del código.
 
 ### HU-03: Búsqueda Rápida de Libros y Ejemplares
-- **Como** Bibliotecario o Usuario consultante,  
+- **Como** Bibliotecario,  
 - **Quiero** buscar libros por título, autor o categoría y visualizar cuántas copias hay disponibles,  
 - **Para** responder de forma inmediata a los usuarios que solicitan material en mostrador.
 - **Criterios de Aceptación:**
@@ -327,6 +338,20 @@ A continuación se presentan las Historias de Usuario redactadas bajo la perspec
     *Cuando* el bibliotecario consulta la vista de préstamos vencidos,  
     *Entonces* el sistema lista el nombre del usuario, título del libro, código de ejemplar, fecha pactada y días de retraso acumulados.
 
+### HU-11: Acceso y Administración de Bibliotecarios
+- **Como** Bibliotecario / Administrador,  
+- **Quiero** iniciar sesión con mi correo institucional y contraseña, así como registrar o desactivar cuentas de personal bibliotecario,  
+- **Para** proteger las operaciones de mostrador y dejar trazabilidad del trabajador que atiende cada préstamo y multa.
+- **Criterios de Aceptación:**
+  - **Escenario 1 (Inicio de sesión válido):**  
+    *Dado que* un bibliotecario en estado "Activo" ingresa su correo y contraseña correctos,  
+    *Cuando* solicita acceder al sistema,  
+    *Entonces* el sistema valida el `password_hash` y habilita el acceso a los módulos operativos.
+  - **Escenario 2 (Cuenta inactiva o credenciales inválidas):**  
+    *Dado que* un trabajador intenta ingresar con estado "Inactivo" o contraseña incorrecta,  
+    *Cuando* envía el formulario de acceso,  
+    *Entonces* el sistema deniega el ingreso y muestra un mensaje de error sin revelar detalles sensibles.
+
 ---
 
 ## 6. Matriz de Trazabilidad (RF ↔ HU ↔ RN)
@@ -340,11 +365,12 @@ La siguiente matriz evidencia la consistencia integral del sistema, demostrando 
 | **RF-03** | Búsqueda y Filtro de Acervo Bibliográfico | **HU-03** | Búsqueda Rápida de Libros y Ejemplares | RN-01, RN-02 | Media |
 | **RF-04** | Gestión de Usuarios Universitarios (CRUD) | **HU-04** | Registro y Padrón de Usuarios Universitarios | RN-03 | Alta |
 | **RF-05** | Verificación de Estado y Solvencia | **HU-05** | Validación de Solvencia de Usuario | RN-03, RN-04 | Alta |
-| **RF-06** | Registro de Préstamo de Ejemplares | **HU-06** | Préstamo de Libros con Validación de Políticas | RN-02, RN-03, RN-04 | Alta |
+| **RF-06** | Registro de Préstamo de Ejemplares | **HU-06** | Préstamo de Libros con Validación de Políticas | RN-02, RN-03, RN-04, RN-07 | Alta |
 | **RF-07** | Registro de Devolución de Ejemplares | **HU-07** | Devolución Oportuna de Libros | RN-02, RN-04, RN-05 | Alta |
 | **RF-08** | Determinación y Registro Automático de Multas | **HU-08** | Devolución Extemporánea y Generación de Multa | RN-04, RN-05, RN-06 | Alta |
-| **RF-09** | Cobro y Liquidación de Multas | **HU-09** | Cobro y Liquidación de Sanciones | RN-04, RN-06 | Alta |
-| **RF-10** | Consultas de Monitoreo y Reportería Operativa | **HU-10** | Monitoreo de Préstamos Activos y Morosidad | RN-01 a RN-06 | Media |
+| **RF-09** | Cobro y Liquidación de Multas | **HU-09** | Cobro y Liquidación de Sanciones | RN-04, RN-06, RN-07 | Alta |
+| **RF-10** | Consultas de Monitoreo y Reportería Operativa | **HU-10** | Monitoreo de Préstamos Activos y Morosidad | RN-01 a RN-07 | Media |
+| **RF-11** | Gestión y Autenticación de Bibliotecarios | **HU-11** | Acceso y Administración de Bibliotecarios | RN-07 | Alta |
 
 ---
 
@@ -355,9 +381,10 @@ Para salvaguardar la viabilidad técnica y asegurar el rigor del diseño concept
 ### Lo que incluye esta especificación:
 1. Catálogo completo de libros con gestión de múltiples ejemplares físicos independientes por obra.
 2. Padrón unificado de usuarios clasificados en Alumnos y Docentes con atributos diferenciados de control.
-3. Control transaccional de préstamos y devoluciones con validación automática de topes, plazos y bloqueos.
-4. Cálculo automático de sanciones económicas por día natural de mora ($10.00 MXN/día) y administración de cobros.
-5. Base funcional para la generación de reportes operativos que posteriormente alimentarán las 5 consultas relacionales complejas con `JOIN`.
+3. Registro y autenticación de bibliotecarios (administradores del sistema) con trazabilidad sobre préstamos y multas.
+4. Control transaccional de préstamos y devoluciones con validación automática de topes, plazos y bloqueos.
+5. Cálculo automático de sanciones económicas por día natural de mora ($10.00 MXN/día) y administración de cobros.
+6. Base funcional para la generación de reportes operativos que posteriormente alimentarán las 5 consultas relacionales complejas con `JOIN`.
 
 ### Lo que explícitamente NO incluye esta especificación:
 1. **Requerimientos de Infraestructura de Servidor:** Especificaciones de hardware o configuración de red (el proyecto se ejecutará sobre el entorno local WAMP estándar).
