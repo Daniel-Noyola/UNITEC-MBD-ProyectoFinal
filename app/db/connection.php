@@ -31,3 +31,14 @@ function getDbConnection(): PDO
 
     return $pdo;
 }
+
+function isDbConnected(): bool
+{
+    try {
+        getDbConnection()->query('SELECT 1');
+
+        return true;
+    } catch (Throwable $exception) {
+        return false;
+    }
+}
