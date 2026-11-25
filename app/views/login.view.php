@@ -45,7 +45,7 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
     <div class="login-shell">
         <header class="login-container login-header">
             <div class="brand-group">
-                <div class="brand-icon" aria-hidden="true">
+                <div class="brand-icon">
                     <span class="material-symbols-outlined">local_library</span>
                 </div>
                 <div>
@@ -57,18 +57,17 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
             <span
                 class="status-badge <?= $escape($badgeVariantClass) ?>"
                 role="status"
-                aria-live="polite"
             >
-                <span class="status-badge__dot" aria-hidden="true"></span>
+                <span class="status-badge__dot"></span>
                 <span><?= $escape($pageData->dbStatus->label) ?></span>
             </span>
         </header>
 
         <main class="login-container login-main">
-            <aside class="login-aside" aria-label="Estado del acervo">
+            <aside class="login-aside">
                 <article class="info-card">
                     <header class="info-card__header">
-                        <span class="material-symbols-outlined info-card__icon--secondary" aria-hidden="true">inventory_2</span>
+                        <span class="material-symbols-outlined info-card__icon--secondary">inventory_2</span>
                         <h2 class="info-card__title">Estado del Acervo</h2>
                     </header>
 
@@ -89,7 +88,7 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                 </article>
 
                 <article class="compact-card">
-                    <div class="compact-card__icon compact-card__icon--secondary" aria-hidden="true">
+                    <div class="compact-card__icon compact-card__icon--secondary">
                         <span class="material-symbols-outlined">apartment</span>
                     </div>
                     <div>
@@ -99,7 +98,7 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                 </article>
             </aside>
 
-            <section class="login-center" aria-label="Formulario de acceso">
+            <section class="login-center">
                 <article class="login-card">
                     <header class="login-card__header">
                         <h1 class="login-card__title">Acceso al Mostrador</h1>
@@ -110,14 +109,14 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
 
                     <?php if (!$pageData->dbStatus->connected && $pageData->error === null): ?>
                         <div class="alert-box alert-box--error" role="alert">
-                            <span class="material-symbols-outlined" aria-hidden="true">database_off</span>
+                            <span class="material-symbols-outlined">database_off</span>
                             <span>No se pudo establecer conexión con la base de datos. Verifique que MySQL esté activo.</span>
                         </div>
                     <?php endif; ?>
 
                     <?php if ($pageData->error !== null): ?>
                         <div class="alert-box alert-box--error" role="alert">
-                            <span class="material-symbols-outlined" aria-hidden="true">error</span>
+                            <span class="material-symbols-outlined">error</span>
                             <span><?= $escape($pageData->error) ?></span>
                         </div>
                     <?php endif; ?>
@@ -126,7 +125,7 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                         <div class="form-field">
                             <label for="identifier" class="form-field__label">Correo institucional o No. Empleado</label>
                             <div class="input-wrapper">
-                                <span class="material-symbols-outlined input-wrapper__icon" aria-hidden="true">badge</span>
+                                <span class="material-symbols-outlined input-wrapper__icon">badge</span>
                                 <input
                                     id="identifier"
                                     name="identifier"
@@ -148,7 +147,7 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                                 </button>
                             </div>
                             <div class="input-wrapper">
-                                <span class="material-symbols-outlined input-wrapper__icon" aria-hidden="true">lock</span>
+                                <span class="material-symbols-outlined input-wrapper__icon">lock</span>
                                 <input
                                     id="password-input"
                                     name="password"
@@ -162,16 +161,14 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                                     id="toggle-password"
                                     type="button"
                                     class="password-toggle"
-                                    aria-label="Mostrar u ocultar contraseña"
-                                    aria-pressed="false"
                                 >
-                                    <span id="toggle-password-icon" class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                                    <span id="toggle-password-icon" class="material-symbols-outlined">visibility</span>
                                 </button>
                             </div>
                         </div>
 
                         <div id="recovery-hint" class="alert-box alert-box--info recovery-hint" role="note">
-                            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+                            <span class="material-symbols-outlined">info</span>
                             <span>Para restablecer su acceso, solicite apoyo al administrador de la Dirección General de Bibliotecas (Ext. 4120).</span>
                         </div>
 
@@ -181,12 +178,12 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                             <?= !$pageData->dbStatus->connected ? 'disabled' : '' ?>
                         >
                             <span>Iniciar Sesión</span>
-                            <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                            <span class="material-symbols-outlined">arrow_forward</span>
                         </button>
                     </form>
 
                     <footer class="login-card__footer">
-                        <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+                        <span class="material-symbols-outlined">verified_user</span>
                         <p class="login-card__footer-text">
                             Acceso exclusivo para personal bibliotecario activo. Toda operación queda registrada bajo su número de empleado.
                         </p>
@@ -194,10 +191,10 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                 </article>
             </section>
 
-            <aside class="login-aside" aria-label="Políticas de préstamo y soporte">
+            <aside class="login-aside">
                 <article class="info-card">
                     <header class="info-card__header">
-                        <span class="material-symbols-outlined info-card__icon--primary" aria-hidden="true">menu_book</span>
+                        <span class="material-symbols-outlined info-card__icon--primary">menu_book</span>
                         <h2 class="info-card__title">Políticas de Préstamo</h2>
                     </header>
 
@@ -218,7 +215,7 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                 </article>
 
                 <article class="compact-card">
-                    <div class="compact-card__icon compact-card__icon--primary" aria-hidden="true">
+                    <div class="compact-card__icon compact-card__icon--primary">
                         <span class="material-symbols-outlined">support_agent</span>
                     </div>
                     <div>
@@ -246,7 +243,6 @@ $badgeVariantClass = $pageData->dbStatus->connected ? 'status-badge--success' : 
                     var isPassword = passwordInput.type === 'password';
                     passwordInput.type = isPassword ? 'text' : 'password';
                     toggleIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
-                    toggleBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
                 });
             }
 
