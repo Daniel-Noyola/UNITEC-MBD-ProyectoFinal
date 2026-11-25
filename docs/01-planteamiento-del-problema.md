@@ -122,13 +122,15 @@ flowchart LR
 ### 4.1 Diseño de una Base de Datos Relacional
 La parte central del proyecto es la base de datos, cuidando especialmente:
 - **Separar títulos de ejemplares:** Una tabla para los datos generales del libro (`Libro`) y otra para cada copia física individual (`Ejemplar`), con su propio código y estado (disponible, prestado, en reparación).
+- **Separar prestatarios de operadores:** Mantener un padrón para los usuarios que solicitan libros (`Usuario`) y una entidad independiente para los trabajadores de la biblioteca (`Bibliotecario`) con credenciales de acceso y trazabilidad sobre cada préstamo y multa gestionada.
 - **Normalización (de 1FN a 3FN):** Aplicar las tres formas normales para eliminar datos repetidos y evitar que dependan de campos incorrectos.
-- **Relaciones e integridad:** Utilizar llaves primarias (`PRIMARY KEY`) y foráneas (`FOREIGN KEY`) para que no existan préstamos sin usuario o devoluciones sin libro registrado.
-- **Restricciones automáticas:** Configurar reglas en la base de datos para asegurar que los campos no queden vacíos donde sean obligatorios y que datos como la matrícula sean únicos.
+- **Relaciones e integridad:** Utilizar llaves primarias (`PRIMARY KEY`) y foráneas (`FOREIGN KEY`) para que no existan préstamos sin usuario o bibliotecario responsable, ni devoluciones sin libro registrado.
+- **Restricciones automáticas:** Configurar reglas en la base de datos para asegurar que los campos no queden vacíos donde sean obligatorios y que datos como la matrícula o el número de empleado sean únicos.
 
 ### 4.2 Aplicación Web para Administración
 Para que el personal de la biblioteca pueda usar la base de datos sin complicaciones técnicas, se desarrollará un sistema web práctico:
-- **Backend en PHP:** Encargado de recibir las acciones del usuario, procesar las fechas de préstamo, calcular las multas y comunicarse de forma segura con la base de datos.
+- **Acceso para administradores/bibliotecarios:** Autenticación del personal bibliotecario mediante sus credenciales registradas en la base de datos para operar el sistema de mostrador.
+- **Backend en PHP:** Encargado de recibir las acciones del bibliotecario, procesar las fechas de préstamo, calcular las multas y comunicarse de forma segura con la base de datos.
 - **Frontend sencillo (HTML, CSS y JavaScript):** Pantallas claras y funcionales para registrar libros, buscar usuarios, prestar ejemplares con un par de clics y marcar devoluciones.
 
 ---
@@ -141,7 +143,7 @@ Para que el personal de la biblioteca pueda usar la base de datos sin complicaci
 
 ### 5.2 Objetivos Específicos
 
-1. **Diseñar el modelo de datos (DER):** Elaborar el Diagrama Entidad-Relación que identifique claramente las entidades del sistema (usuarios, libros, ejemplares, préstamos y multas), sus atributos y cómo se relacionan entre sí.
+1. **Diseñar el modelo de datos (DER):** Elaborar el Diagrama Entidad-Relación que identifique claramente las entidades del sistema (usuarios, bibliotecarios, libros, ejemplares, préstamos y multas), sus atributos y cómo se relacionan entre sí.
 2. **Aplicar las reglas de normalización (1FN a 3FN):** Descomponer las tablas paso a paso para eliminar redundancias y evitar problemas al insertar, modificar o eliminar registros.
 3. **Crear la base de datos física y su diccionario:** Escribir el script SQL con los tipos de datos adecuados, llaves primarias, llaves foráneas y reglas de validación, documentando cada campo en un diccionario de datos.
 4. **Construir los módulos principales de la aplicación web:** Desarrollar en PHP las pantallas y funciones básicas para dar de alta libros y usuarios, registrar préstamos con fecha de vencimiento y bloquear automáticamente a usuarios con moras pendientes.
@@ -155,9 +157,10 @@ Para mantener el proyecto viable para la entrega, se delimita lo siguiente:
 
 - **Lo que sí incluye el sistema:**
   - Alta, baja y consulta de libros y ejemplares físicos.
+  - Registro y acceso de bibliotecarios/administradores encargados de operar el mostrador.
   - Registro de usuarios clasificados en Alumnos y Docentes con su respectiva matrícula o número de empleado.
-  - Control de préstamos con fecha programada de entrega.
-  - Registro de devoluciones con cálculo automático de días de retraso y monto de la multa.
+  - Control de préstamos con fecha programada de entrega y trazabilidad del bibliotecario que atiende el movimiento.
+  - Registro de devoluciones con cálculo automático de días de retraso y monto de la multa, asociando al bibliotecario que gestiona el cobro.
   - Estatus del usuario para evitar que una persona con adeudos solicite más libros.
 
 - **Lo que queda fuera de esta versión (no incluido):**
