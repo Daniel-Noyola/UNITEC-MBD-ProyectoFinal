@@ -1,7 +1,4 @@
 .agents
 skills-lock.json
 docs/word
-docs/pdf
 /scripts
-app/up/*
-!app/up/.gitkeep

@@ -28,18 +28,15 @@ Para que el proyecto sea válido, debe cumplir estrictamente con los siguientes 
 
 ---
 
-## 3. Alcance, Arquitectura y Stack Tecnológico
+## 3. Alcance y Stack Tecnológico
 
 - **Enfoque principal:** Modelado conceptual/lógico, normalización formal (1FN a 3FN), integridad referencial y consultas relacionales.
 - **Alcance:** Producto Mínimo Viable (MVP) delimitado; cubre el flujo esencial sin extensiones posteriores.
-- **Arquitectura Web (`specs/07-arquitectura-simple-y-base-proyecto.md`):**
-  - **Patrón simple (2 archivos por pantalla):** Cada módulo separa lógica (`app/pages/<modulo>.php`) y presentación (`app/views/<modulo>.view.php`). La página prepara un objeto `$pageData` (con datos y acciones) y la vista declara su contrato con PHPDoc `@var` y renderiza el HTML sin consultas SQL.
-  - **Estructura:** `index.php` en la raíz del proyecto como punto de entrada y el resto de la aplicación dentro de `app/` (`db/`, `pages/`, `views/`, `styles/`, `js/`, `helpers/`, `up/`).
 - **Tecnologías y Entorno:**
-  - **Servidor local:** WampServer (Apache + MySQL/MariaDB + PHP).
-  - **Base de Datos:** MySQL / MariaDB (`biblioteca_db`, 9 tablas en 3FN, acceso vía PDO con *Prepared Statements* desde `app/db/connection.php` y `app/db/repositories/`).
-  - **Backend:** PHP puro con formularios clásicos (`POST` + redirección) y funciones reutilizables en `app/helpers/`.
-  - **Frontend:** HTML5 (diseños desde **Google Stitch**), CSS3 puro en `app/styles/` (siguiendo `DESIGN.md`), JavaScript básico por vista + utilidades en `app/js/` y **ApexCharts vía CDN** para gráficas en Dashboard y Reportes.
+  - **Servidor local:** WampServer.
+  - **Base de Datos:** MySQL / MariaDB (SQL).
+  - **Backend:** PHP.
+  - **Frontend:** HTML5, CSS3 y JavaScript (básico).
 
 ---
 
